@@ -1,76 +1,84 @@
-import argparse
 import sys
 from generator import generate_keys
 from checker import is_valid_format, check_on_steam
 
 
-def cmd_generate(args):
-    keys = generate_keys(args.count, args.groups)
-    for k in keys:
-        print(k)
+def menu_gen():
+    print()
+    try:
+        count = int(input("  Combien de clés veux-tu générer ? "))
+    except ValueError:
+        print("  Nombre invalide.")
+        return
 
+    groups = input("  Format 3x5 ou 5x5 ? (3/5) [défaut: 3] : ").strip()
+    groups = int(groups) if groups in ("3", "5") else 3
 
-def cmd_check(args):
-    if args.key:
-        keys = [args.key]
-    elif args.file:
-        with open(args.file) as f:
-            keys = [line.strip() for line in f if line.strip()]
-    else:
-        keys = [line.strip() for line in sys.stdin if line.strip()]
+    online = input("  Vérifier sur Steam ? (o/n) [défaut: n] : ").strip().lower()
+    online = online == "o"
+
+    print(f"\n  Génération de {count} clé(s)...\n")
+    keys = generate_keys(count, groups)
 
     for k in keys:
         if not is_valid_format(k):
-            print(f"[INVALID] {k}")
+            print(f"  [INVALID] {k}")
             continue
 
-        if args.online:
+        valid_format = True
+
+        if online:
             result = check_on_steam(k)
             status = "VALID" if result["valid"] else "INVALID"
-            print(f"[{status}] {k} - {result['reason']}")
+            print(f"  [{status}] {k}  ({result['reason']})")
         else:
-            print(f"[VALID] {k}")
+            print(f"  [VALID] {k}")
+
+    print()
 
 
-def cmd_mass_gen_check(args):
-    keys = generate_keys(args.count, args.groups)
-    for k in keys:
-        if args.online:
-            result = check_on_steam(k)
-            status = "VALID" if result["valid"] else "INVALID"
-            print(f"[{status}] {k} - {result['reason']}")
-        else:
-            print(f"[VALID] {k}")
+def menu_check():
+    print()
+    key = input("  Entre la clé à vérifier : ").strip()
+    if not key:
+        return
+
+    if not is_valid_format(key):
+        print(f"\n  [INVALID] {key}  (Mauvais format)\n")
+        return
+
+    online = input("  Vérifier sur Steam ? (o/n) [défaut: n] : ").strip().lower()
+    online = online == "o"
+
+    if online:
+        result = check_on_steam(key)
+        status = "VALID" if result["valid"] else "INVALID"
+        print(f"\n  [{status}] {key}  ({result['reason']})\n")
+    else:
+        print(f"\n  [VALID] {key}\n")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Steam Key Generator & Checker")
-    sub = parser.add_subparsers(dest="command")
+    while True:
+        print("\n" + "=" * 40)
+        print("  STEAM KEY GENERATOR & CHECKER")
+        print("=" * 40)
+        print("  1. Gen  — Générer + vérifier des clés")
+        print("  2. Check — Vérifier une clé")
+        print("  3. Quit")
+        print("=" * 40)
 
-    gen = sub.add_parser("gen", help="Generate keys")
-    gen.add_argument("-n", "--count", type=int, default=1, help="Number of keys (default: 1)")
-    gen.add_argument("-g", "--groups", type=int, choices=[3, 5], default=3, help="Key format groups (3 or 5)")
-    gen.set_defaults(func=cmd_generate)
+        choice = input("  Choix : ").strip()
 
-    chk = sub.add_parser("check", help="Check keys")
-    chk.add_argument("-k", "--key", help="Single key to check")
-    chk.add_argument("-f", "--file", help="File with keys (one per line)")
-    chk.add_argument("--online", action="store_true", help="Check against Steam servers")
-    chk.set_defaults(func=cmd_check)
-
-    mass = sub.add_parser("mass", help="Generate & check keys")
-    mass.add_argument("-n", "--count", type=int, default=10, help="Number of keys")
-    mass.add_argument("-g", "--groups", type=int, choices=[3, 5], default=3)
-    mass.add_argument("--online", action="store_true", help="Check against Steam servers")
-    mass.set_defaults(func=cmd_mass_gen_check)
-
-    args = parser.parse_args()
-
-    if not args.command:
-        parser.print_help()
-        sys.exit(1)
-
-    args.func(args)
+        if choice == "1":
+            menu_gen()
+        elif choice == "2":
+            menu_check()
+        elif choice in ("3", "q", "quit"):
+            print("  Bye !")
+            sys.exit(0)
+        else:
+            print("  Choix invalide.")
 
 
 if __name__ == "__main__":
