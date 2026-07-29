@@ -11,11 +11,8 @@ def menu_gen():
         print("  Nombre invalide.")
         return
 
-    groups = input("  Format 3x5 ou 5x5 ? (3/5) [défaut: 3] : ").strip()
-    groups = int(groups) if groups in ("3", "5") else 3
-
     print(f"\n  Génération de {count} clé(s)...\n")
-    keys = generate_keys(count, groups)
+    keys = generate_keys(count)
 
     for k in keys:
         if is_valid_format(k):
