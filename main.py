@@ -14,25 +14,14 @@ def menu_gen():
     groups = input("  Format 3x5 ou 5x5 ? (3/5) [défaut: 3] : ").strip()
     groups = int(groups) if groups in ("3", "5") else 3
 
-    online = input("  Vérifier sur Steam ? (o/n) [défaut: n] : ").strip().lower()
-    online = online == "o"
-
     print(f"\n  Génération de {count} clé(s)...\n")
     keys = generate_keys(count, groups)
 
     for k in keys:
-        if not is_valid_format(k):
-            print(f"  [INVALID] {k}")
-            continue
-
-        valid_format = True
-
-        if online:
-            result = check_on_steam(k)
-            status = "VALID" if result["valid"] else "INVALID"
-            print(f"  [{status}] {k}  ({result['reason']})")
-        else:
+        if is_valid_format(k):
             print(f"  [VALID] {k}")
+        else:
+            print(f"  [INVALID] {k}")
 
     print()
 
