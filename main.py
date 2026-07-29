@@ -11,14 +11,23 @@ def menu_gen():
         print("  Nombre invalide.")
         return
 
+    online = input("  Vérifier sur Steam ? (o/n) [défaut: n] : ").strip().lower()
+    online = online == "o"
+
     print(f"\n  Génération de {count} clé(s)...\n")
     keys = generate_keys(count)
 
     for k in keys:
-        if is_valid_format(k):
-            print(f"  [VALID] {k}")
-        else:
+        if not is_valid_format(k):
             print(f"  [INVALID] {k}")
+            continue
+
+        if online:
+            result = check_on_steam(k)
+            status = "VALID" if result["valid"] else "INVALID"
+            print(f"  [{status}] {k}  ({result['reason']})")
+        else:
+            print(f"  [VALID] {k}")
 
     print()
 
