@@ -19,11 +19,15 @@ def check_on_steam(key):
     session = requests.Session()
     session.headers.update({
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": "https://store.steampowered.com/account/registerkey",
+        "Referer": "https://store.steampowered.com/",
     })
 
     try:
         r = session.post(STEAM_URL, data={"product_key": key}, timeout=15)
+
+        if "application/json" not in r.headers.get("Content-Type", ""):
+            return {"valid": False, "reason": "Steam demande une connexion - ouvre https://store.steampowered.com dans ton navigateur d'abord"}
+
         data = r.json()
 
         if data.get("success") == 1:
@@ -33,5 +37,7 @@ def check_on_steam(key):
         else:
             return {"valid": False, "reason": data.get("message", "Unknown response")}
 
+    except requests.exceptions.JSONDecodeError:
+        return {"valid": False, "reason": "Steam a retourné une page HTML (connexion requise)"}
     except Exception as e:
-        return {"valid": False, "reason": f"Connection error: {e}"}
+        return {"valid": False, "reason": f"Erreur: {e}"}
